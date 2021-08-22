@@ -1,0 +1,49 @@
+---
+- name: Build wataguess
+  hosts: all
+  tasks:
+    - name: Build wataguess docker image
+      shell: docker build -t wataguess .
+      args:
+          executable: /bin/bash
+          chdir: /home/lance/Src/wataguess
+      delegate_to: localhost
+
+    - name: Tag the docker image
+      shell: docker tag wataguess lanceofwhichwedream/home-network:wataguess
+      args:
+        executable: /bin/bash
+        chdir: /home/lance/Src/wataguess
+      delegate_to: localhost
+
+    - name: Push the docker image
+      shell: docker push lanceofwhichwedream/home-network:wataguess
+      args:
+        executable: /bin/bash
+        chdir: /home/lance/Src/wataguess
+      delegate_to: localhost
+
+    - name: git pull the repo
+      git:
+        repo: git@github.com:lanceofwhichwedream/wataguess.git
+        dest: /home/lance/wataguess
+        update: yes
+
+    - name: Stop the old docker images
+      shell: docker-compose kill
+      args:
+        executable: /bin/bash
+        chdir: /home/lance/wataguess
+      ignore_errors: yes
+
+    - name: Pull the new docker images
+      shell: docker-compose pull
+      args:
+        executable: /bin/bash
+        chdir: /home/lance/wataguess
+
+    - name: Run da bot
+      shell: docker-compose up -d
+      args:
+        executable: /bin/bash
+        chdir: /home/lance/wataguess
